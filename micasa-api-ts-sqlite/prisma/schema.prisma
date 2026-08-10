@@ -1,0 +1,182 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           Int     @id @default(autoincrement())
+  firstname    String
+  lastname     String
+  email        String @unique
+  password     String
+  refreshToken String  @map("refresh_token")
+  isActive     Boolean @default(false) @map("is_active")
+
+  reviews   Review[]
+  favorites Favorite[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model City {
+  id      Int    @id @default(autoincrement())
+  zipcode Int
+  name    String
+
+  estates Estate[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("cities")
+}
+
+model EstateType {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  estates Estate[]
+
+  @@map("estate_types")
+}
+
+model EnergyLabel {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  estates Estate[]
+
+  @@map("energy_labels")
+}
+
+model Estate {
+  id      Int    @id @default(autoincrement())
+  address String
+  price   Float  @default(0.00)
+  payout  Float  @default(0.00)
+  gross   Float  @default(0.00)
+  net     Float  @default(0.00)
+  cost    Float  @default(0.00)
+
+  numRooms         Int @default(0) @map("num_rooms")
+  numFloors        Int @default(0) @map("num_floors")
+  floorSpace       Int @default(0) @map("floor_space")
+  groundSpace      Int @default(0) @map("ground_space")
+  basementSpace    Int @default(0) @map("basement_space")
+  yearConstruction Int @default(0) @map("year_construction")
+  yearRebuilt      Int @default(0) @map("year_rebuilt")
+
+  description String
+  floorplan   String
+  numClicks   Int    @map("num_clicks")
+
+  cityId        Int @map("city_id")
+  typeId        Int @map("type_id")
+  energyLabelId Int @map("energy_label_id")
+  staffId       Int @map("staff_id")
+
+  city        City        @relation(fields: [cityId], references: [id])
+  type        EstateType  @relation(fields: [typeId], references: [id])
+  energyLabel EnergyLabel @relation(fields: [energyLabelId], references: [id])
+  staff       Staff       @relation(fields: [staffId], references: [id])
+
+  reviews      Review[]
+  favorites    Favorite[]
+  estateImages EstateImageRel[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("estates")
+}
+
+model Image {
+  id          Int    @id @default(autoincrement())
+  filename    String
+  author      String
+  description String
+
+  estateImages EstateImageRel[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("images")
+}
+
+model EstateImageRel {
+  id       Int     @id @default(autoincrement())
+  estateId Int     @map("estate_id")
+  imageId  Int     @map("image_id")
+  isMain   Boolean @map("is_main")
+
+  estate Estate @relation(fields: [estateId], references: [id])
+  image  Image  @relation(fields: [imageId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("estate_image_rel")
+}
+
+model Review {
+  id       Int      @id @default(autoincrement())
+  subject  String
+  comment  String
+  numStars Int      @map("num_stars")
+  date     DateTime  
+  estateId Int      @map("estate_id")
+  userId   Int      @map("user_id")
+  isActive Boolean  @map("is_active")
+
+  estate Estate @relation(fields: [estateId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("reviews")
+}
+
+model Favorite {
+  id       Int @id @default(autoincrement())
+  estateId Int @map("estate_id")
+  userId   Int @map("user_id")
+
+  estate Estate @relation(fields: [estateId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("favorites")
+}
+
+model Staff {
+  id        Int    @id @default(autoincrement())
+  firstname String
+  lastname  String
+  position  String
+  image     String
+  phone     String
+  email     String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  estates Estate[]
+
+  @@map("staffs")
+}
